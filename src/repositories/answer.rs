@@ -1,4 +1,4 @@
-use deadpool_postgres::{Pool, Client};
+deadpool_postgres::{Pool, Client};
 use std::sync::Arc;
 use slog_scope::error;
 use crate::models::user::{User, CreateUser};
@@ -7,14 +7,13 @@ use crate::{config::HashingService, errors::{AppError, AppErrorType}};
 use tokio_postgres::error::{Error, SqlState};
 use uuid::Uuid;
 
-pub struct UserRepository {
+pub struct AnswerRepository {
     pool: Arc<Pool>
 }
 
-impl UserRepository {
-
-    pub fn new(pool: Arc<Pool>) -> UserRepository {
-        UserRepository { pool }
+impl AnswerRepository {
+    pub fn new(pool: Arc<Pool>) -> AnswerRepository {
+        AnswerRepository { pool }
     }
 
     pub async fn get(&self, id: Uuid) -> Result<User, AppError> {
@@ -22,21 +21,21 @@ impl UserRepository {
             .get()
             .await
             .map_err(|err| {
-                error!("Error getting client {}", err; "query" => "user");
+                error!("Error getting client {}", err; "query" => "get");
                 err
             })?;
 
-        let statement = client.prepare("select * from users where id = $1").await?;
-
-        client
+        let statement = client.prepare("select * from answers where id = $1").await?;
+            
+        client 
             .query(&statement, &[&id])
             .await
             .map_err(|err| {
-                error!("Error getting users. {}", err; "query" => "user");
+                error!("Error getting answers {}", err; "query" => "get");
                 err
             })?
             .iter()
-            .map(|row| User::from_row_ref(row))
+            .map(|row| User::from_now_ref(row))
             .collect::<Result<Vec<User>, _>>()?
             .pop()
             .ok_or(AppError {
@@ -50,32 +49,32 @@ impl UserRepository {
         let client: Client = self.pool
             .get()
             .await
-            .map_err(|err| {
-                error!("Error getting client {}", err; "query" => "users");
+            .map(|err| {
+                error!("Error getting client {}", err; "query" => "get");
                 err
             })?;
 
-        let statement = client.prepare("select * from users").await?;
+        let statement = client.prepare("select * from answers").await?;
 
-        let users = client
+        let answers = client
             .query(&statement, &[])
             .await
             .map_err(|err| {
-                error!("Error getting users. {}", err; "query" => "users");
+                error!("Error getting answers. {}", err; "query" => "all");
                 err
             })?
             .iter()
             .map(|row| User::from_row_ref(row))
             .collect::<Result<Vec<User>, _>>()
             .map_err(|err| {
-                error!("Error getting parsing users. {}", err; "query" => "users");
+                error!("Error getting parsing answers. {}", err; "query" => "all");
                 err
             })?;
 
-        Ok(users)
+        Ok(answers)
     }
 
-    pub async fn create(&self, input: CreateUser, hashing: Arc<HashingService>) -> Result<User, AppError> {
+    pub async fn create(&self, input: CreateAnswer, hashing: Arc<HashingService>) -> Result<User, AppError> {
         let client: Client = self.pool
             .get()
             .await
@@ -85,17 +84,13 @@ impl UserRepository {
             })?;
 
         let statement = client
-            .prepare("insert into users (username, email, password, bio, image) values ($1, $2, $3, $4, $5) returning *")
+            .prepare("insert into answers (content) values ($1) returning *")
             .await?;
 
         let password_hash = hashing.hash(input.password).await?;
 
-        let user = client.query(&statement, &[
-                &input.username,
-                &input.email,
-                &password_hash,
-                &input.bio,
-                &input.image
+        let answer = client.query(&statement, &[
+            &input.content,
             ])
             .await
             .map_err(|err: Error| {
@@ -104,9 +99,9 @@ impl UserRepository {
 
                 match unique_error {
                     Some(true) => AppError {
-                            cause: Some(err.to_string()),
-                            message: Some("Username or email address already exists.".to_string()),
-                            error_type: AppErrorType::InvalidField
+                        cause: Some(err.to_string()),
+                        message: Some("answer already exists.".to_string()),
+                        error_type: AppErrorType::InvalidField
                         },
                     _ => AppError::from(err)
                 }
@@ -115,12 +110,12 @@ impl UserRepository {
             .map(|row| User::from_row_ref(row))
             .collect::<Result<Vec<User>, _>>()?
             .pop()
-            .ok_or(AppError {
+            .ok_or(AppErr {
                 message: Some("Error creating User.".to_string()),
                 cause: Some("Unknown error.".to_string()),
                 error_type: AppErrorType::DbError,
             })?;
 
-        Ok(user)
+        Ok(answer)
     }
 }
