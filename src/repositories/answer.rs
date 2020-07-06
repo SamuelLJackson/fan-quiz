@@ -1,14 +1,25 @@
-deadpool_postgres::{Pool, Client};
+use deadpool_postgres::{Pool, Client};
 use std::sync::Arc;
 use slog_scope::error;
-use crate::models::user::{User, CreateUser};
+use crate::models::answer::{Answer, CreateAnswer};
 use tokio_pg_mapper::FromTokioPostgresRow;
 use crate::{config::HashingService, errors::{AppError, AppErrorType}};
 use tokio_postgres::error::{Error, SqlState};
 use uuid::Uuid;
+use dataloader::{BatchFn, cached::Loader};
 
 pub struct AnswerRepository {
     pool: Arc<Pool>
+}
+
+pub struct AnswerBatcher {
+    pool: Arc<Pool>,
+}
+
+pub type AnswerLoader = Loader<Uuid, Vec<Answer>, AppError, AnswerBatcher>;
+
+pub fn get_answer_loader(pool: Arc<Pool>) -> AnswerLoader {
+    Loader::new(AnswerBatcher { pool })
 }
 
 impl AnswerRepository {
@@ -16,7 +27,7 @@ impl AnswerRepository {
         AnswerRepository { pool }
     }
 
-    pub async fn get(&self, id: Uuid) -> Result<User, AppError> {
+    pub async fn get(&self, id: Uuid) -> Result<Answer, AppError> {
         let client: Client = self.pool
             .get()
             .await
@@ -35,8 +46,8 @@ impl AnswerRepository {
                 err
             })?
             .iter()
-            .map(|row| User::from_now_ref(row))
-            .collect::<Result<Vec<User>, _>>()?
+            .map(|row| Answer::from_row_ref(row))
+            .collect::<Result<Vec<Answer>, _>>()?
             .pop()
             .ok_or(AppError {
                 cause: None,
@@ -45,12 +56,12 @@ impl AnswerRepository {
             })
     }
 
-    pub async fn all(&self) -> Result<Vec<User>, AppError> {
+    pub async fn all(&self) -> Result<Vec<Answer>, AppError> {
         let client: Client = self.pool
             .get()
             .await
-            .map(|err| {
-                error!("Error getting client {}", err; "query" => "get");
+            .map_err(|err| {
+                error!("Error getting client {}", err; "query" => "all");
                 err
             })?;
 
@@ -64,8 +75,8 @@ impl AnswerRepository {
                 err
             })?
             .iter()
-            .map(|row| User::from_row_ref(row))
-            .collect::<Result<Vec<User>, _>>()
+            .map(|row| Answer::from_row_ref(row))
+            .collect::<Result<Vec<Answer>, _>>()
             .map_err(|err| {
                 error!("Error getting parsing answers. {}", err; "query" => "all");
                 err
@@ -74,7 +85,7 @@ impl AnswerRepository {
         Ok(answers)
     }
 
-    pub async fn create(&self, input: CreateAnswer, hashing: Arc<HashingService>) -> Result<User, AppError> {
+    pub async fn create(&self, input: CreateAnswer, hashing: Arc<HashingService>) -> Result<Answer, AppError> {
         let client: Client = self.pool
             .get()
             .await
@@ -86,8 +97,6 @@ impl AnswerRepository {
         let statement = client
             .prepare("insert into answers (content) values ($1) returning *")
             .await?;
-
-        let password_hash = hashing.hash(input.password).await?;
 
         let answer = client.query(&statement, &[
             &input.content,
@@ -107,15 +116,41 @@ impl AnswerRepository {
                 }
             })?
             .iter()
-            .map(|row| User::from_row_ref(row))
-            .collect::<Result<Vec<User>, _>>()?
+            .map(|row| Answer::from_row_ref(row))
+            .collect::<Result<Vec<Answer>, _>>()?
             .pop()
-            .ok_or(AppErr {
-                message: Some("Error creating User.".to_string()),
+            .ok_or(AppError {
+                message: Some("Error creating Answer.".to_string()),
                 cause: Some("Unknown error.".to_string()),
                 error_type: AppErrorType::DbError,
             })?;
 
         Ok(answer)
+    }
+
+    #[async_trait]
+    impl BatchFn<Uuid, Vec<Answer>> for AnswerBatcher {
+        type Error = AppError;
+    
+        async fn load(&self, keys: &[Uuid]) -> HashMap<Uuid, Result<Vec<Post>, AppError>> {
+    
+            info!("Loading batch {:?}", keys);
+    
+            let mut posts_map = HashMap::new();
+    
+            let result: Result<(), AppError> = self.get_posts_by_user_ids(&mut posts_map, keys.into()).await;
+    
+            keys
+                .iter()
+                .map(move |id| {
+                    let entry = 
+                        posts_map.entry(*id)
+                            .or_insert_with(|| vec![])
+                            .clone();
+    
+                        (id.clone(), result.clone().map(|_| entry))
+                    })
+                    .collect::<HashMap<_, _>>()
+        }
     }
 }

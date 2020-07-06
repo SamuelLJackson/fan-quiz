@@ -1,9 +1,17 @@
 use deadpool_postgres::Pool;
 use juniper::RootNode;
 use crate::errors::AppError;
-use crate::repositories::{post::{PostRepository, PostLoader}, user::UserRepository};
+use crate::repositories::{
+    post::{PostRepository, PostLoader}, 
+    user::UserRepository, 
+    answer::{AnswerRepository, AnswerLoader},
+};
 use crate::config::HashingService;
-use crate::models::{post::{CreatePost, Post}, user::{User, CreateUser}};
+use crate::models::{
+    post::{CreatePost, Post}, 
+    user::{User, CreateUser},
+    answer::{Answer, CreateAnswer},
+};
 use std::sync::Arc;
 use uuid::Uuid;
 use chrono::NaiveDateTime;
@@ -23,11 +31,14 @@ impl Context {
     pub fn post_repository(&self) -> PostRepository {
         PostRepository::new(self.pool.clone())
     }
+
+    pub fn answer_repository(&self) -> AnswerRepository {
+        AnswerRepository::new(self.pool.clone())
+    }
 }
 
 /// Context Marker
 impl juniper::Context for Context {}
-
 
 pub struct Query {}
 
@@ -53,6 +64,14 @@ impl Query {
 
     pub async fn post(id: Uuid, context: &Context) -> Result<Post, AppError> {
         context.post_repository().get(id).await
+    }
+
+    pub async fn answers(context: &Context) -> Result<Vec<User>, AppError> {
+        context.answer_repository().all().await
+    }
+
+    pub async fn answer(id: Uuid, context: &Context) -> Result<Answer, AppError> {
+        context.answer_repository().get(id).await
     }
 }
 
@@ -107,6 +126,10 @@ impl Mutation {
 
     pub async fn create_post(input: CreatePost, context: &Context) -> Result<Post, AppError> {
         context.post_repository().create(input).await
+    }
+
+    pub async fn create_answer(input: CreateAnswer, context: &Context) -> Result<Answer, AppError> {
+        context.answer_repository().create(input).await
     }
 }
 
