@@ -20,6 +20,8 @@ cargo install diesel_cli --no-default-features --features postgres
 # Run db migrations
 DATABASE_URL=postgres://actix:actix@localhost:5432/actix diesel migration run
 
+# to redo migration (apply down script, then up script) do: diesel migration redo
+
 # Install LLVM/Clang compiler
 # https://github.com/bcmyers/argonautica/tree/master/argonautica-rs#installation
 

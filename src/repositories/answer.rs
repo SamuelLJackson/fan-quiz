@@ -3,7 +3,7 @@ use std::sync::Arc;
 use slog_scope::error;
 use crate::models::answer::{Answer, CreateAnswer};
 use tokio_pg_mapper::FromTokioPostgresRow;
-use crate::{config::HashingService, errors::{AppError, AppErrorType}};
+use crate::errors::{AppError, AppErrorType};
 use tokio_postgres::error::{Error, SqlState};
 use uuid::Uuid;
 

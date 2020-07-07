@@ -2,7 +2,7 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use tokio_pg_mapper_derive::PostgresMapper;
-use juniper::GraphqlInputObject;
+use juniper::GraphQLInputObject;
 
 #[derive(Clone, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table="questions")]
@@ -16,7 +16,7 @@ pub struct Question {
     pub updated_at: NaiveDateTime,
 }
 
-#[derive(GraphqlInputObject)]
+#[derive(GraphQLInputObject)]
 pub struct CreateQuestion {
     pub content: String,
     pub correct_answer_id: Uuid,

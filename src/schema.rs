@@ -47,22 +47,8 @@ table! {
         content -> Varchar,
         correct_answer_id -> Uuid,
         band_id -> Uuid,
-    }
-}
-
-table! {
-    todo_item (id) {
-        id -> Int4,
-        title -> Varchar,
-        checked -> Bool,
-        list_id -> Int4,
-    }
-}
-
-table! {
-    todo_list (id) {
-        id -> Int4,
-        title -> Varchar,
+        created_at -> Timestamp,
+        updated_at -> Timestamp,
     }
 }
 
@@ -85,7 +71,6 @@ joinable!(comments -> users (author_id));
 joinable!(posts -> users (author_id));
 joinable!(questions -> answers (correct_answer_id));
 joinable!(questions -> bands (band_id));
-joinable!(todo_item -> todo_list (list_id));
 
 allow_tables_to_appear_in_same_query!(
     answers,
@@ -93,7 +78,5 @@ allow_tables_to_appear_in_same_query!(
     comments,
     posts,
     questions,
-    todo_item,
-    todo_list,
     users,
 );
