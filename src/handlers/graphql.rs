@@ -5,12 +5,14 @@ use crate::repositories::{
     post::{PostRepository, PostLoader}, 
     user::UserRepository, 
     answer::AnswerRepository,
+    question::{QuestionRepository, QuestionLoader},
 };
 use crate::config::HashingService;
 use crate::models::{
     post::{CreatePost, Post}, 
     user::{User, CreateUser},
     answer::{Answer, CreateAnswer},
+    question::{Question, CreateQuestion},
 };
 use std::sync::Arc;
 use uuid::Uuid;
@@ -34,6 +36,10 @@ impl Context {
 
     pub fn answer_repository(&self) -> AnswerRepository {
         AnswerRepository::new(self.pool.clone())
+    }
+
+    pub fn question_repository(&self) -> QuestionRepository {
+        QuestionRepository::new(self.pool.clone())
     }
 }
 
@@ -73,6 +79,15 @@ impl Query {
     pub async fn answer(id: Uuid, context: &Context) -> Result<Answer, AppError> {
         context.answer_repository().get(id).await
     }
+
+    pub async fn questions(context: &Context) -> Result<Vec<Question>, AppError> {
+        context.question_repository().all().await
+    }
+
+    pub async fn question(id: Uuid, context: &Context) -> Result<Question, AppError> {
+        context.question_repository().get(id).await
+    }
+
 }
 
 #[juniper::graphql_object(

@@ -2,9 +2,9 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use tokio_pg_mapper_derive::PostgresMapper;
-use juniper::GraphQLInputObject;
+use juniper::{GraphQLInputObject, GraphQLObject};
 
-#[derive(Clone, Serialize, Deserialize, PostgresMapper)]
+#[derive(Clone, Serialize, Deserialize, PostgresMapper, GraphQLObject)]
 #[pg_mapper(table="questions")]
 pub struct Question {
     pub id: Uuid,

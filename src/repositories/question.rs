@@ -89,29 +89,29 @@ impl QuestionRepository {
     }
 
     #[allow(dead_code)]
-    pub async fn get_for_user(&self, user_id: Uuid) -> Result<Vec<Question>, AppError> {
+    pub async fn get_for_band(&self, user_id: Uuid) -> Result<Vec<Question>, AppError> {
         let client: Client = self.pool
             .get()
             .await
             .map_err(|err| {
-                error!("Error getting client {}", err; "query" => "get_for_user");
+                error!("Error getting client {}", err; "query" => "get_for_band");
                 err
             })?;
 
-        let statement = client.prepare("select * from questions where author_id = $1").await?;
+        let statement = client.prepare("select * from questions where band_id = $1").await?;
 
         let users = client
             .query(&statement, &[&user_id])
             .await
             .map_err(|err| {
-                error!("Error getting users. {}", err; "query" => "get_for_user");
+                error!("Error getting bands. {}", err; "query" => "get_for_band");
                 err
             })?
             .iter()
             .map(|row| Question::from_row_ref(row))
             .collect::<Result<Vec<Question>, _>>()
             .map_err(|err| {
-                error!("Error getting parsing users. {}", err; "query" => "get_for_user");
+                error!("Error getting parsing users. {}", err; "query" => "get_for_band");
                 err
             })?;
 
