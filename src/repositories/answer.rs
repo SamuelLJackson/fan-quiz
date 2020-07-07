@@ -6,20 +6,9 @@ use tokio_pg_mapper::FromTokioPostgresRow;
 use crate::{config::HashingService, errors::{AppError, AppErrorType}};
 use tokio_postgres::error::{Error, SqlState};
 use uuid::Uuid;
-use dataloader::{BatchFn, cached::Loader};
 
 pub struct AnswerRepository {
     pool: Arc<Pool>
-}
-
-pub struct AnswerBatcher {
-    pool: Arc<Pool>,
-}
-
-pub type AnswerLoader = Loader<Uuid, Vec<Answer>, AppError, AnswerBatcher>;
-
-pub fn get_answer_loader(pool: Arc<Pool>) -> AnswerLoader {
-    Loader::new(AnswerBatcher { pool })
 }
 
 impl AnswerRepository {
@@ -85,7 +74,7 @@ impl AnswerRepository {
         Ok(answers)
     }
 
-    pub async fn create(&self, input: CreateAnswer, hashing: Arc<HashingService>) -> Result<Answer, AppError> {
+    pub async fn create(&self, input: CreateAnswer) -> Result<Answer, AppError> {
         let client: Client = self.pool
             .get()
             .await
@@ -126,31 +115,5 @@ impl AnswerRepository {
             })?;
 
         Ok(answer)
-    }
-
-    #[async_trait]
-    impl BatchFn<Uuid, Vec<Answer>> for AnswerBatcher {
-        type Error = AppError;
-    
-        async fn load(&self, keys: &[Uuid]) -> HashMap<Uuid, Result<Vec<Post>, AppError>> {
-    
-            info!("Loading batch {:?}", keys);
-    
-            let mut posts_map = HashMap::new();
-    
-            let result: Result<(), AppError> = self.get_posts_by_user_ids(&mut posts_map, keys.into()).await;
-    
-            keys
-                .iter()
-                .map(move |id| {
-                    let entry = 
-                        posts_map.entry(*id)
-                            .or_insert_with(|| vec![])
-                            .clone();
-    
-                        (id.clone(), result.clone().map(|_| entry))
-                    })
-                    .collect::<HashMap<_, _>>()
-        }
     }
 }

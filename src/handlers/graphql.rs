@@ -4,7 +4,7 @@ use crate::errors::AppError;
 use crate::repositories::{
     post::{PostRepository, PostLoader}, 
     user::UserRepository, 
-    answer::{AnswerRepository, AnswerLoader},
+    answer::AnswerRepository,
 };
 use crate::config::HashingService;
 use crate::models::{
@@ -66,7 +66,7 @@ impl Query {
         context.post_repository().get(id).await
     }
 
-    pub async fn answers(context: &Context) -> Result<Vec<User>, AppError> {
+    pub async fn answers(context: &Context) -> Result<Vec<Answer>, AppError> {
         context.answer_repository().all().await
     }
 
