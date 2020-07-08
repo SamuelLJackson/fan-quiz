@@ -1,5 +1,5 @@
 # actix-blog-app ![tests](https://github.com/nemesiscodex/actix-blog-app/workflows/tests/badge.svg)
-Blog made in actix
+App service for fan quiz bands, questions & answers
 
 ## Requirements
 - Rust
