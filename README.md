@@ -1,4 +1,4 @@
-# actix-blog-app ![tests](https://github.com/nemesiscodex/actix-blog-app/workflows/tests/badge.svg)
+# fan-quiz-service ![tests](https://github.com/nemesiscodex/actix-blog-app/workflows/tests/badge.svg)
 App service for fan quiz bands, questions & answers
 
 ## Requirements
