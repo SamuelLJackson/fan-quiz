@@ -70,3 +70,26 @@ curl -X POST -H "Content-Type: application/json" -d '{ "query": "{users {id user
   }
 }
 ```
+
+# build docker image
+docker build --tag {name_of_build}:{sem.ver} .
+
+# run docker image
+docker run --publish {port}:{port} --detach --name {abbreviation} {name_of_build}:{sem.ver}
+
+# stop
+docker rm --force {abbreviation}
+
+# start kubernetes:
+minikube start --driver=hyperkit
+
+# deploy app
+kubectl create deployment kubernetes-bootcamp --image=gcr.io/google-samples/kubernetes-bootcamp:v1
+
+# run local registry server
+docker run -d -p 5000:5000 --restart=always --name registry registry:2
+
+
+#### run this current 'rust' docker image
+$ docker build -t my-rust-app .
+$ docker run -it --rm --name my-running-app my-rust-app
