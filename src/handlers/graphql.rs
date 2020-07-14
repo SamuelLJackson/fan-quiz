@@ -2,14 +2,12 @@ use deadpool_postgres::Pool;
 use juniper::RootNode;
 use crate::errors::AppError;
 use crate::repositories::{
-    post::{PostRepository, PostLoader}, 
     user::UserRepository, 
     answer::AnswerRepository,
     question::{QuestionRepository, QuestionLoader},
 };
 use crate::config::HashingService;
 use crate::models::{
-    post::{CreatePost, Post}, 
     user::{User, CreateUser},
     answer::{Answer, CreateAnswer},
     question::{Question, CreateQuestion},
@@ -22,16 +20,11 @@ use chrono::NaiveDateTime;
 pub struct Context {
     pub pool: Arc<Pool>,
     pub hashing: Arc<HashingService>,
-    pub post_loader: PostLoader
 }
 
 impl Context {
     pub fn user_repository(&self) -> UserRepository {
         UserRepository::new(self.pool.clone())
-    }
-
-    pub fn post_repository(&self) -> PostRepository {
-        PostRepository::new(self.pool.clone())
     }
 
     pub fn answer_repository(&self) -> AnswerRepository {
@@ -64,14 +57,6 @@ impl Query {
         context.user_repository().get(id).await
     }
 
-    pub async fn posts(context: &Context) -> Result<Vec<Post>, AppError> {
-        context.post_repository().all().await
-    }
-
-    pub async fn post(id: Uuid, context: &Context) -> Result<Post, AppError> {
-        context.post_repository().get(id).await
-    }
-
     pub async fn answers(context: &Context) -> Result<Vec<Answer>, AppError> {
         context.answer_repository().all().await
     }
@@ -94,11 +79,6 @@ impl Query {
     Context = Context
 )]
 impl User {
-    pub async fn posts(&self, context: &Context) -> Result<Vec<Post>, AppError> {
-        // context.post_repository().get_for_user(self.id).await
-        context.post_loader.load(self.id).await
-    }
-
     pub fn id(&self) -> Uuid {
         self.id
     }
@@ -137,10 +117,6 @@ pub struct Mutation {}
 impl Mutation {
     pub async fn create_user(input: CreateUser, context: &Context) -> Result<User, AppError> {
         context.user_repository().create(input, context.hashing.clone()).await
-    }
-
-    pub async fn create_post(input: CreatePost, context: &Context) -> Result<Post, AppError> {
-        context.post_repository().create(input).await
     }
 
     pub async fn create_answer(input: CreateAnswer, context: &Context) -> Result<Answer, AppError> {
