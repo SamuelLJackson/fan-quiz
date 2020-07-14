@@ -1,5 +1,5 @@
-# actix-blog-app ![tests](https://github.com/nemesiscodex/actix-blog-app/workflows/tests/badge.svg)
-Blog made in actix
+# fan-quiz-service ![tests](https://github.com/nemesiscodex/actix-blog-app/workflows/tests/badge.svg)
+App service for fan quiz bands, questions & answers
 
 ## Requirements
 - Rust
@@ -71,6 +71,7 @@ curl -X POST -H "Content-Type: application/json" -d '{ "query": "{users {id user
 }
 ```
 
+<<<<<<< HEAD
 # build docker image
 docker build --tag {name_of_build}:{sem.ver} .
 
@@ -93,3 +94,4 @@ docker run -d -p 5000:5000 --restart=always --name registry registry:2
 #### run this current 'rust' docker image
 $ docker build -t my-rust-app .
 $ docker run -it --rm --name my-running-app my-rust-app
+
