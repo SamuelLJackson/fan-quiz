@@ -5,7 +5,7 @@ App service for fan quiz bands, questions & answers
 - Rust
 - Docker
 - docker-compose  
-
+ 
 ## Usage
 ```  
 # Copy example .env file
