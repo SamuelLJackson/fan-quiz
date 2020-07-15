@@ -7,7 +7,7 @@ App service for fan quiz bands, questions & answers
 - docker-compose  
 
 ## Usage
-``` 
+```  
 # Copy example .env file
 cp .env.example .env  
 
