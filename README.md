@@ -8,7 +8,7 @@ App service for fan quiz bands, questions & answers
  
 ## Usage
 ```  
-# Copy example .env file 
+# Copy example .env file  
 cp .env.example .env  
 
 # Run postgres 
