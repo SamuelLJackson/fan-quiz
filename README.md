@@ -9,7 +9,7 @@ App service for fan quiz bands, questions & answers
 ## Usage
 ```
 # Copy example .env file
-cp .env.example .env
+cp .env.example .env 
 
 # Run postgres
 docker-compose up -d postgres
