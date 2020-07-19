@@ -4,7 +4,7 @@ App service for fan quiz bands, questions & answers
 ## Requirements
 - Rust
 - Docker
-- docker-compose  
+- docker-compose   
  
 ## Usage
 ```   
