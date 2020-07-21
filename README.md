@@ -13,7 +13,7 @@ cp .env.example .env
 
 # Run postgres 
 docker-compose up -d postgres
-
+ 
 # Install diesel
 cargo install diesel_cli --no-default-features --features postgres
 
