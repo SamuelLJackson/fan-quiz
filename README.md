@@ -11,7 +11,7 @@ App service for fan quiz bands, questions & answers
 # Copy example .env file    
 cp .env.example .env  
  
-# Run postgres 
+# Run postgres  
 docker-compose up -d postgres
  
 # Install diesel
