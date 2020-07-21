@@ -12,7 +12,7 @@ App service for fan quiz bands, questions & answers
 cp .env.example .env  
    
 # Run postgres  
-docker-compose up -d postgres 
+docker-compose up -d postgres  
  
 # Install diesel
 cargo install diesel_cli --no-default-features --features postgres
