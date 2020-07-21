@@ -16,7 +16,7 @@ docker-compose up -d postgres
  
 # Install diesel
 cargo install diesel_cli --no-default-features --features postgres
-
+ 
 # Run db migrations
 DATABASE_URL=postgres://actix:actix@localhost:5432/actix diesel migration run
 
